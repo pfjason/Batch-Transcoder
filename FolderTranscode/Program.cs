@@ -20,7 +20,6 @@ namespace FolderTranscode
                 {
                     FolderTranscoder F = new FolderTranscoder(args[0], args[1]);
                     F.StartTranscode();
-                    Console.ReadKey(true);
                 }
                 else
                 {
