@@ -113,8 +113,8 @@ namespace FolderTranscode
                     Handbrake.ErrorDataReceived += Handbrake_ErrorDataReceived;
                     Handbrake.StartInfo.FileName = @"C:\Program Files\Handbrake\HandbrakeCLI.exe";
                     Handbrake.StartInfo.Arguments = @"-e x265 --encoder-preset veryfast -q 18 --two-pass --decomb -P -U -N eng"
-                                                      + " --width " + VS.width.ToString() + " --height " + VS.height.ToString()
-                                                     + " --strict-anamorphic --crop 0:0:0:0 --audio-copy-mask aac,ac3,dts,dtshd  ";
+                                                      + " --maxWidth " + VS.width.ToString() + " --maxHeight " + VS.height.ToString()
+                                                     + " --strict-anamorphic --audio-copy-mask aac,ac3,dts,dtshd  ";
 
                     bool PlayOn = F.Inform.ToUpperInvariant().Contains("PROVIDERNAME ") && F.Inform.ToUpperInvariant().Contains("BROWSEPATH ");
                     string AudioChannels = "";
