@@ -227,11 +227,20 @@ namespace FolderTranscode
                         Console.CursorVisible = true;
                         Console.WriteLine();
                         Console.WriteLine("HandbrakeCLI exited with code " + Handbrake.ExitCode.ToString());
-                        if(DeleteOriginal)
+                        
+                        if(DeleteOriginal && Handbrake.ExitCode == 0)
                         {
                             Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine("Deleting " + _file.Name);
                             _file.Delete();
+                            Console.ForegroundColor = ConsoleColor.Gray;
+                        }
+
+                        if(Handbrake.ExitCode != 0)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("Handbrake exited with code "+Handbrake.ExitCode.ToString()+" deleting partial output file " + OutFile.Name);
+                            OutFile.Delete();
                             Console.ForegroundColor = ConsoleColor.Gray;
                         }
 
