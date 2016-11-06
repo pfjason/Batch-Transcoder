@@ -20,12 +20,12 @@ namespace FolderTranscode
                 {
                     bool Delete = false;
 
-                    if(args.Length > 2)
+                    if (args.Length > 2)
                     {
                         int arg = 2;
-                        while(arg < args.Length)
-                        {                           
-                            switch(args[arg].ToUpperInvariant())
+                        while (arg < args.Length)
+                        {
+                            switch (args[arg].ToUpperInvariant())
                             {
                                 case "-DELETE":
                                     Delete = true;
@@ -34,7 +34,7 @@ namespace FolderTranscode
                             arg++;
                         }
                     }
-                    
+
                     FolderTranscoder F = new FolderTranscoder(args[0], args[1], Delete);
                     F.StartTranscode();
                 }
@@ -72,7 +72,7 @@ namespace FolderTranscode
                     OutFolder.Create();
 
                 Console.WriteLine("Reading files from " + InFolder.FullName);
-                if(DeleteOriginal)
+                if (DeleteOriginal)
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("WARNING: DELETE ORIGINAL ON SUCCESSFUL TRANSCODE SET TO ON");
@@ -85,7 +85,7 @@ namespace FolderTranscode
                     {
                         TranscodeFile(F);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                     }
@@ -125,7 +125,7 @@ namespace FolderTranscode
 
                     //   Console.WriteLine(F.Inform);
                     //   Console.WriteLine("Album: " + F.General.Album);
-                    
+
                     Console.WriteLine("Stream " + VS.streamid.ToString() + ": " + VS.ToString());
                     Console.WriteLine("Codec: " + VS.CodecId.ToString() + " " + VS.codecCommonName);
                     Console.WriteLine("Resolution: " + VS.width.ToString() + "x" + VS.height.ToString());
@@ -145,7 +145,7 @@ namespace FolderTranscode
                         Handbrake.StartInfo.Arguments += "copy";
                         Console.WriteLine("Audio Stream " + A.streamid + ": " + A.ToString());
                         Console.WriteLine("Audio Codec: " + A.CodecId + " / " + A.CodecCommonName + " / " + A.codecCommonName + " / " + A.EncodedLibrary + " / " + A.encoderLibrary);
-                            
+
                         Console.WriteLine("Channels: " + A.Channels);
                         AudioChannels = A.Channels;
 
@@ -227,8 +227,8 @@ namespace FolderTranscode
                         Console.CursorVisible = true;
                         Console.WriteLine();
                         Console.WriteLine("HandbrakeCLI exited with code " + Handbrake.ExitCode.ToString());
-                        
-                        if(DeleteOriginal && Handbrake.ExitCode == 0)
+
+                        if (DeleteOriginal && Handbrake.ExitCode == 0)
                         {
                             Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine("Deleting " + _file.Name);
@@ -236,10 +236,10 @@ namespace FolderTranscode
                             Console.ForegroundColor = ConsoleColor.Gray;
                         }
 
-                        if(Handbrake.ExitCode != 0)
+                        if (Handbrake.ExitCode != 0)
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("Handbrake exited with code "+Handbrake.ExitCode.ToString()+" deleting partial output file " + OutFile.Name);
+                            Console.WriteLine("Handbrake exited with code " + Handbrake.ExitCode.ToString() + " deleting partial output file " + OutFile.Name);
                             OutFile.Delete();
                             Console.ForegroundColor = ConsoleColor.Gray;
                         }
@@ -301,7 +301,7 @@ namespace FolderTranscode
             {
                 Console.CursorLeft = 0;
                 int Top = Console.CursorTop;
-                Console.Write(e.Data.PadRight(Console.WindowWidth-1));
+                Console.Write(e.Data.PadRight(Console.WindowWidth - 1));
                 Console.CursorTop = Top;
             }
             catch { }
