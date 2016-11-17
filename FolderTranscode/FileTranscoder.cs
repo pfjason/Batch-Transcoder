@@ -94,6 +94,15 @@ namespace FolderTranscode
                                 if (!RemovePlayOnBanner && !h265Transcode)
                                 {
                                     File.Move(F.filePath, OutputFile.FullName);
+
+                                    if (DeleteOriginal)
+                                    {
+                                        Console.ForegroundColor = ConsoleColor.Yellow;
+                                        Console.WriteLine("Deleting " + InputFile.Name);
+                                        InputFile.Delete();
+                                        Console.ForegroundColor = ConsoleColor.Gray;
+                                    }
+
                                     return true;
                                 }
                             }
@@ -116,6 +125,14 @@ namespace FolderTranscode
                                 if (!h265Transcode)
                                 {
                                     File.Move(F.filePath, OutputFile.FullName);
+
+                                    if (DeleteOriginal)
+                                    {
+                                        Console.ForegroundColor = ConsoleColor.Yellow;
+                                        Console.WriteLine("Deleting " + InputFile.Name);
+                                        InputFile.Delete();
+                                        Console.ForegroundColor = ConsoleColor.Gray;
+                                    }
                                     return true;
                                 }
                             }
