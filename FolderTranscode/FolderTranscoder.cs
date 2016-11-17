@@ -14,13 +14,12 @@ namespace FolderTranscode
     class FolderTranscoder
     {
         DirectoryInfo InFolder, OutFolder;
-        public bool DeleteOriginal = false, RemovePlayOnBanner = false, RemoveAds = false;
+        public bool DeleteOriginal = false, RemovePlayOnBanner = false, RemoveAds = false, h265Transcode = true;
 
-        public FolderTranscoder(string inFolder, string outFolder, bool deleteOriginal)
+        public FolderTranscoder(string inFolder, string outFolder)
         {
             InFolder = new DirectoryInfo(inFolder);
             OutFolder = new DirectoryInfo(outFolder);
-            DeleteOriginal = deleteOriginal;
         }
 
         public void StartTranscode()
@@ -47,6 +46,7 @@ namespace FolderTranscode
                         FT.DeleteOriginal = DeleteOriginal;
                         FT.RemoveAds = RemoveAds;
                         FT.RemovePlayOnBanner = RemovePlayOnBanner;
+                        FT.h265Transcode = h265Transcode;
                         FT.Transcode();
                     }
                     catch (Exception ex)

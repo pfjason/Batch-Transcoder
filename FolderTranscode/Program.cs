@@ -18,6 +18,9 @@ namespace FolderTranscode
             {
                 if (args.Length >= 2)
                 {
+                    bool RemoveAds = true;
+                    bool RemoveBanner = true;
+                    bool Transcode = true;
                     bool Delete = false;
 
                     if (args.Length > 2)
@@ -30,15 +33,25 @@ namespace FolderTranscode
                                 case "-DELETE":
                                     Delete = true;
                                     break;
+                                case "-NOTRANSCODE":
+                                    Transcode = false;
+                                    break;
+                                case "-NOADREMOVAL":
+                                    RemoveAds = false;
+                                    break;
+                                case "-NOBANNERREMOVAL":
+                                    RemoveBanner = false;
+                                    break;
                             }
                             arg++;
                         }
                     }
 
-                    FolderTranscoder F = new FolderTranscoder(args[0], args[1], Delete);
+                    FolderTranscoder F = new FolderTranscoder(args[0], args[1]);
                     F.DeleteOriginal = Delete;
-                    F.RemoveAds = true;
-                    F.RemovePlayOnBanner = true;
+                    F.RemoveAds = RemoveAds;
+                    F.RemovePlayOnBanner = RemoveBanner;
+                    F.h265Transcode = Transcode;
                     F.StartTranscode();
                 }
                 else

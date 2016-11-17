@@ -331,7 +331,6 @@ namespace FolderTranscode
                                 if (line.ToUpperInvariant().Contains(": VIDEO".ToUpperInvariant()) || line.ToUpperInvariant().Contains(": ADVERTISEMENT".ToUpperInvariant()))
                                 {
                                     Chapter CC = new Chapter(line, ChapterCount);
-                                    Console.WriteLine(CC.ToString());
                                     Chapters.Add(CC);
 
                                     if (!first1)
@@ -345,7 +344,7 @@ namespace FolderTranscode
                                 ChapterCount++;
                             }
                             Chapters[Chapters.Count - 1].SetDuration(Duration);
-                            Console.WriteLine(new string('*', 10));
+                            
                             break;
                         }
                     }
