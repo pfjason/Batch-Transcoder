@@ -62,169 +62,161 @@ namespace FolderTranscode
 
         public bool Transcode()
         {
-            bool RetVal = false;
-            MediaFile F = new MediaFile(InputFile.FullName);
 
-            if (F.HasStreams)
+            if (!OutputFile.Exists)
             {
-                if (F.Video.Count > 0)
+                bool RetVal = false;
+                MediaFile F = new MediaFile(InputFile.FullName);
+
+                if (F.HasStreams)
                 {
-                    string tempBannerRemove = null;
-                    string tempAdremove = null;
-
-                    if (isPlayOnFile())
+                    if (F.Video.Count > 0)
                     {
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.WriteLine(InputFile.Name + " is a PlayOn file.");
-                        Console.ForegroundColor = ConsoleColor.Gray;
-                                             
+                        string tempBannerRemove = null;
+                        string tempAdremove = null;
 
-                        if (RemoveAds && hasAds())
+                        if (isPlayOnFile())
                         {
-                            Console.ForegroundColor = ConsoleColor.Cyan;
-                            Console.WriteLine(InputFile.Name + " has PlayOn Detected Commercials. Removing...");
+                            Console.ForegroundColor = ConsoleColor.Blue;
+                            Console.WriteLine(InputFile.Name + " is a PlayOn file.");
                             Console.ForegroundColor = ConsoleColor.Gray;
 
-                            tempAdremove = RemoveCommercials(F);
 
-                            if (tempAdremove != null)
+                            if (RemoveAds && hasAds())
                             {
-                                F = new MediaFile(tempAdremove);
+                                Console.ForegroundColor = ConsoleColor.Cyan;
+                                Console.WriteLine(InputFile.Name + " has PlayOn Detected Commercials. Removing...");
+                                Console.ForegroundColor = ConsoleColor.Gray;
 
-                                if (!RemovePlayOnBanner && !h265Transcode)
-                                {
-                                    File.Move(F.filePath, OutputFile.FullName);
-
-                                    if (DeleteOriginal)
-                                    {
-                                        Console.ForegroundColor = ConsoleColor.Yellow;
-                                        Console.WriteLine("Deleting " + InputFile.Name);
-                                        InputFile.Delete();
-                                        Console.ForegroundColor = ConsoleColor.Gray;
-                                    }
-
-                                    return true;
-                                }
-                            }
-
-                        }
-
-                        if (RemovePlayOnBanner)
-                        {
-                            Console.ForegroundColor = ConsoleColor.Cyan;
-                            Console.WriteLine(InputFile.Name + " has PlayOn Banner. Removing...");
-                            Console.ForegroundColor = ConsoleColor.Gray;
-                            tempBannerRemove = RemoveBanner(F);
-                            if (tempBannerRemove != null)
-                            {
-                                F = new MediaFile(tempBannerRemove);
+                                tempAdremove = RemoveCommercials(F);
 
                                 if (tempAdremove != null)
-                                    File.Delete(tempAdremove);
-
-                                if (!h265Transcode)
                                 {
-                                    File.Move(F.filePath, OutputFile.FullName);
+                                    F = new MediaFile(tempAdremove);
 
-                                    if (DeleteOriginal)
+                                    if (!RemovePlayOnBanner && !h265Transcode)
                                     {
-                                        Console.ForegroundColor = ConsoleColor.Yellow;
-                                        Console.WriteLine("Deleting " + InputFile.Name);
-                                        InputFile.Delete();
-                                        Console.ForegroundColor = ConsoleColor.Gray;
+                                        File.Move(F.filePath, OutputFile.FullName);
+
+                                        if (DeleteOriginal)
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                                            Console.WriteLine("Deleting " + InputFile.Name);
+                                            InputFile.Delete();
+                                            Console.ForegroundColor = ConsoleColor.Gray;
+                                        }
+
+                                        return true;
                                     }
-                                    return true;
+                                }
+
+                            }
+
+                            if (RemovePlayOnBanner)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Cyan;
+                                Console.WriteLine(InputFile.Name + " has PlayOn Banner. Removing...");
+                                Console.ForegroundColor = ConsoleColor.Gray;
+                                tempBannerRemove = RemoveBanner(F);
+                                if (tempBannerRemove != null)
+                                {
+                                    F = new MediaFile(tempBannerRemove);
+
+                                    if (tempAdremove != null)
+                                        File.Delete(tempAdremove);
+
+                                    if (!h265Transcode)
+                                    {
+                                        File.Move(F.filePath, OutputFile.FullName);
+
+                                        if (DeleteOriginal)
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                                            Console.WriteLine("Deleting " + InputFile.Name);
+                                            InputFile.Delete();
+                                            Console.ForegroundColor = ConsoleColor.Gray;
+                                        }
+                                        return true;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (h265Transcode)
-                    {
-                        string HandbrakePath = @"C:\Program Files\Handbrake\HandbrakeCLI.exe";
-
-                        if (File.Exists(HandbrakePath))
+                        if (h265Transcode)
                         {
+                            string HandbrakePath = @"C:\Program Files\Handbrake\HandbrakeCLI.exe";
 
-                            MediaInfoDotNet.Models.VideoStream VS = F.Video[0];
-                            Process Handbrake = new Process();
-                            Handbrake.StartInfo.UseShellExecute = false;
-                            Handbrake.StartInfo.RedirectStandardError = true;
-                            Handbrake.StartInfo.RedirectStandardOutput = true;
-                            Handbrake.OutputDataReceived += Handbrake_OutputDataReceived;
-                            Handbrake.ErrorDataReceived += Handbrake_ErrorDataReceived;
-                            Handbrake.StartInfo.FileName = HandbrakePath;
-                            Handbrake.StartInfo.Arguments = @"-e x265 --encoder-preset veryfast -q 18 --two-pass --decomb ";
+                            if (File.Exists(HandbrakePath))
+                            {
+                                MediaInfoDotNet.Models.VideoStream VS = F.Video[0];
+                                Process Handbrake = new Process();
+                                Handbrake.StartInfo.UseShellExecute = false;
+                                Handbrake.StartInfo.RedirectStandardError = true;
+                                Handbrake.StartInfo.RedirectStandardOutput = true;
+                                Handbrake.OutputDataReceived += Handbrake_OutputDataReceived;
+                                Handbrake.ErrorDataReceived += Handbrake_ErrorDataReceived;
+                                Handbrake.StartInfo.FileName = HandbrakePath;
+                                Handbrake.StartInfo.Arguments = @"-e x265 --encoder-preset veryfast -q 18 --two-pass --decomb ";
 #if DEBUG
                             Handbrake.StartInfo.Arguments = @"-e x265 --encoder-preset ultrafast -q 40 ";
 #endif
 
-                            Handbrake.StartInfo.Arguments += "-P -U -N eng"
-                                                              + " --maxWidth " + VS.width.ToString() + " --maxHeight " + VS.height.ToString() + " -m "
-                                                             + " --strict-anamorphic --audio-copy-mask aac,ac3,dts,dtshd  ";
+                                Handbrake.StartInfo.Arguments += "-P -U -N eng"
+                                                                  + " --maxWidth " + VS.width.ToString() + " --maxHeight " + VS.height.ToString() + " -m "
+                                                                 + " --strict-anamorphic --audio-copy-mask aac,ac3,dts,dtshd  ";
+                                string AudioChannels = "";
+                                Console.WriteLine(new String('-', Console.WindowWidth));
+                                Console.WriteLine("Transcoding " + InputFile.FullName);
+                                Console.WriteLine("Stream " + VS.streamid.ToString() + ": " + VS.ToString());
+                                Console.WriteLine("Codec: " + VS.CodecId.ToString() + " " + VS.codecCommonName);
+                                Console.WriteLine("Resolution: " + VS.width.ToString() + "x" + VS.height.ToString());
+                                Console.WriteLine("Length: " + Duration.ToString());
+
+                                int ChannelCount = 0;
+
+                                foreach (MediaInfoDotNet.Models.AudioStream A in F.Audio)
+                                {
+                                    if (ChannelCount == 0)
+                                        Handbrake.StartInfo.Arguments += "-E ";
+                                    else
+                                        Handbrake.StartInfo.Arguments += ",";
+
+                                    ChannelCount++;
+                                    Handbrake.StartInfo.Arguments += "copy";
+                                    Console.WriteLine("Audio Stream " + A.streamid + ": " + A.ToString());
+                                    Console.WriteLine("Audio Codec: " + A.CodecId + " / " + A.CodecCommonName + " / " + A.codecCommonName + " / " + A.EncodedLibrary + " / " + A.encoderLibrary);
+
+                                    Console.WriteLine("Channels: " + A.Channels);
+                                    AudioChannels = A.Channels;
+
+                                }
+                                Handbrake.StartInfo.Arguments += " ";
 
 
-                            string AudioChannels = "";
-                            Console.WriteLine(new String('-', Console.WindowWidth));
-                            Console.WriteLine("Transcoding " + InputFile.FullName);
+                                foreach (MediaInfoDotNet.Models.TextStream T in F.Text)
+                                {
+                                    Console.WriteLine("Subtitle " + T.streamid + ": " + T.ToString());
+                                }
 
+                                int subtitles = 0;
+                                if (F.Text.Count > 0)
+                                    Handbrake.StartInfo.Arguments += "-s ";
 
+                                while (subtitles < F.Text.Count)
+                                {
+                                    if (subtitles != 0)
+                                        Handbrake.StartInfo.Arguments += ",";
 
-                            //   Console.WriteLine(F.Inform);
-                            //   Console.WriteLine("Album: " + F.General.Album);
+                                    Handbrake.StartInfo.Arguments += (subtitles + 1).ToString();
+                                    subtitles++;
+                                }
 
-                            Console.WriteLine("Stream " + VS.streamid.ToString() + ": " + VS.ToString());
-                            Console.WriteLine("Codec: " + VS.CodecId.ToString() + " " + VS.codecCommonName);
-                            Console.WriteLine("Resolution: " + VS.width.ToString() + "x" + VS.height.ToString());
-                            Console.WriteLine("Length: " + Duration.ToString());
+                                if (F.Text.Count > 0)
+                                    Handbrake.StartInfo.Arguments += ",scan ";
 
-                            int ChannelCount = 0;
+                                Handbrake.StartInfo.Arguments += "-i \"" + InputFile.FullName + "\" ";
+                                Handbrake.StartInfo.Arguments += "-o \"" + OutputFile.FullName + "\" ";
 
-                            foreach (MediaInfoDotNet.Models.AudioStream A in F.Audio)
-                            {
-                                if (ChannelCount == 0)
-                                    Handbrake.StartInfo.Arguments += "-E ";
-                                else
-                                    Handbrake.StartInfo.Arguments += ",";
-
-                                ChannelCount++;
-                                Handbrake.StartInfo.Arguments += "copy";
-                                Console.WriteLine("Audio Stream " + A.streamid + ": " + A.ToString());
-                                Console.WriteLine("Audio Codec: " + A.CodecId + " / " + A.CodecCommonName + " / " + A.codecCommonName + " / " + A.EncodedLibrary + " / " + A.encoderLibrary);
-
-                                Console.WriteLine("Channels: " + A.Channels);
-                                AudioChannels = A.Channels;
-
-                            }
-                            Handbrake.StartInfo.Arguments += " ";
-
-
-                            foreach (MediaInfoDotNet.Models.TextStream T in F.Text)
-                            {
-                                Console.WriteLine("Subtitle " + T.streamid + ": " + T.ToString());
-                            }
-
-                            int subtitles = 0;
-                            if (F.Text.Count > 0)
-                                Handbrake.StartInfo.Arguments += "-s ";
-
-                            while (subtitles < F.Text.Count)
-                            {
-                                if (subtitles != 0)
-                                    Handbrake.StartInfo.Arguments += ",";
-
-                                Handbrake.StartInfo.Arguments += (subtitles + 1).ToString();
-                                subtitles++;
-                            }
-
-                            if (F.Text.Count > 0)
-                                Handbrake.StartInfo.Arguments += ",scan ";
-
-                            Handbrake.StartInfo.Arguments += "-i \"" + InputFile.FullName + "\" ";
-                            Handbrake.StartInfo.Arguments += "-o \"" + OutputFile.FullName + "\" ";
-
-                            if (!OutputFile.Exists)
-                            {
                                 //Console.WriteLine(Handbrake.StartInfo.FileName + " " + Handbrake.StartInfo.Arguments);
 
                                 if (!OutputFile.Directory.Exists)
@@ -259,32 +251,33 @@ namespace FolderTranscode
                                     Console.ForegroundColor = ConsoleColor.Gray;
                                 }
 
+
                             }
                             else
-                                throw new InvalidOperationException(OutputFile.FullName + " already exists");
+                                throw new FileNotFoundException("Unable to find HandbrakeCLI.", HandbrakePath);
+
+                            if (tempAdremove != null && File.Exists(tempAdremove))
+                                File.Delete(tempAdremove);
+
+                            if (tempBannerRemove != null && File.Exists(tempBannerRemove))
+                                File.Delete(tempBannerRemove);
+
                         }
                         else
-                            throw new FileNotFoundException("Unable to find HandbrakeCLI.", HandbrakePath);
-
-                        if (tempAdremove != null && File.Exists(tempAdremove))
-                            File.Delete(tempAdremove);
-
-                        if (tempBannerRemove != null && File.Exists(tempBannerRemove))
-                            File.Delete(tempBannerRemove);
-
+                        {
+                            RetVal = ProcessNonMediaFile();
+                        }
                     }
                     else
                     {
                         RetVal = ProcessNonMediaFile();
                     }
                 }
-                else
-                {
-                    RetVal = ProcessNonMediaFile();
-                }
-            }
 
-            return RetVal;
+                return RetVal;
+            }
+            else
+                throw new InvalidOperationException(OutputFile.FullName + " already exists");
         }
 
         bool ProcessNonMediaFile()
@@ -361,7 +354,7 @@ namespace FolderTranscode
                                 ChapterCount++;
                             }
                             Chapters[Chapters.Count - 1].SetDuration(Duration);
-                            
+
                             break;
                         }
                     }
@@ -382,7 +375,7 @@ namespace FolderTranscode
                             ffm.ErrorDataReceived += Ff_ErrorDataReceived;
                             ffm.OutputDataReceived += Ff_OutputDataReceived;
                             ffm.StartInfo.FileName = ffmpeg;
-                            ffm.StartInfo.Arguments = " -i \"" + InputFile.FullName + "\" -ss " + C.Start.TotalSeconds.ToString() + " -to " + C.End.TotalSeconds.ToString() + " -codec copy -f mpegts \"" + f + "\"";
+                            ffm.StartInfo.Arguments = "-y -i \"" + InputFile.FullName + "\" -ss " + C.Start.TotalSeconds.ToString() + " -to " + C.End.TotalSeconds.ToString() + " -codec copy -f mpegts \"" + f + "\"";
                             // Console.WriteLine(ffm.StartInfo.FileName.ToString() + " " + ffm.StartInfo.Arguments.ToString());
                             ffm.Start();
                             ffm.BeginErrorReadLine();
@@ -396,7 +389,7 @@ namespace FolderTranscode
                         }
                     }
 
-                    string arg = "-i \"concat:";
+                    string arg = " -y -i \"concat:";
                     bool first = true;
                     foreach (string ChapterFile in ChapterFiles)
                     {
@@ -442,7 +435,7 @@ namespace FolderTranscode
 
             if (File.Exists(ffmpeg))
             {
-                string arg = "-i \"" + F.filePath + "\" ";
+                string arg = "-y -i \"" + F.filePath + "\" ";
 
                 string OF = OutputFile.Directory.FullName + "\\~br." + InputFile.Name;
                 decimal dd = (Convert.ToDecimal(F.Video[0].Duration) / 1000) - 10;
