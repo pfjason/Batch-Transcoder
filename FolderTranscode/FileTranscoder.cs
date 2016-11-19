@@ -62,8 +62,25 @@ namespace FolderTranscode
 
         public bool Transcode()
         {
+            bool exclusiveAccess = false;
 
-            if (!OutputFile.Exists)
+            try
+            {
+                FileStream FileTest = InputFile.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                FileTest.Close();
+                exclusiveAccess = true;
+            }
+            catch(Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Couldn't get exclusive access to " + InputFile.Name + ", Skipping") ;
+                Console.ForegroundColor = ConsoleColor.Gray;
+            }
+
+            if (!OutputFile.Directory.Exists)
+                OutputFile.Directory.Create();
+
+            if (!OutputFile.Exists && exclusiveAccess)
             {
                 bool RetVal = false;
                 MediaFile F = new MediaFile(InputFile.FullName);
@@ -167,7 +184,7 @@ namespace FolderTranscode
                                                                  + " --strict-anamorphic --audio-copy-mask aac,ac3,dts,dtshd  ";
                                 string AudioChannels = "";
                                 Console.WriteLine(new String('-', Console.WindowWidth));
-                                Console.WriteLine("Transcoding " + InputFile.FullName);
+                                Console.WriteLine("Transcoding " + F.filePath);
                                 Console.WriteLine("Stream " + VS.streamid.ToString() + ": " + VS.ToString());
                                 Console.WriteLine("Codec: " + VS.CodecId.ToString() + " " + VS.codecCommonName);
                                 Console.WriteLine("Resolution: " + VS.width.ToString() + "x" + VS.height.ToString());
