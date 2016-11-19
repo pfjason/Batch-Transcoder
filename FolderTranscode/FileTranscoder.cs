@@ -85,7 +85,7 @@ namespace FolderTranscode
                             if (RemoveAds && hasAds())
                             {
                                 Console.ForegroundColor = ConsoleColor.Cyan;
-                                Console.WriteLine(InputFile.Name + " has PlayOn Detected Commercials. Removing...");
+                                Console.WriteLine(F.filePath + " has PlayOn Detected Commercials. Removing...");
                                 Console.ForegroundColor = ConsoleColor.Gray;
 
                                 tempAdremove = RemoveCommercials(F);
@@ -115,9 +115,10 @@ namespace FolderTranscode
                             if (RemovePlayOnBanner)
                             {
                                 Console.ForegroundColor = ConsoleColor.Cyan;
-                                Console.WriteLine(InputFile.Name + " has PlayOn Banner. Removing...");
+                                Console.WriteLine(F.filePath + " has PlayOn Banner. Removing...");
                                 Console.ForegroundColor = ConsoleColor.Gray;
                                 tempBannerRemove = RemoveBanner(F);
+
                                 if (tempBannerRemove != null)
                                 {
                                     F = new MediaFile(tempBannerRemove);
@@ -214,7 +215,7 @@ namespace FolderTranscode
                                 if (F.Text.Count > 0)
                                     Handbrake.StartInfo.Arguments += ",scan ";
 
-                                Handbrake.StartInfo.Arguments += "-i \"" + InputFile.FullName + "\" ";
+                                Handbrake.StartInfo.Arguments += "-i \"" + F.filePath + "\" ";
                                 Handbrake.StartInfo.Arguments += "-o \"" + OutputFile.FullName + "\" ";
 
                                 //Console.WriteLine(Handbrake.StartInfo.FileName + " " + Handbrake.StartInfo.Arguments);
