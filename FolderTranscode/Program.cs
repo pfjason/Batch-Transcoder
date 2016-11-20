@@ -22,6 +22,7 @@ namespace FolderTranscode
                     bool RemoveBanner = true;
                     bool Transcode = true;
                     bool Delete = false;
+                    bool AutoCrop = true;
 
                     if (args.Length > 2)
                     {
@@ -42,6 +43,9 @@ namespace FolderTranscode
                                 case "-NOBANNERREMOVAL":
                                     RemoveBanner = false;
                                     break;
+                                case "-NOAUTOCROP":
+                                    AutoCrop = false;
+                                    break;
                             }
                             arg++;
                         }
@@ -52,6 +56,7 @@ namespace FolderTranscode
                     F.RemoveAds = RemoveAds;
                     F.RemovePlayOnBanner = RemoveBanner;
                     F.h265Transcode = Transcode;
+                    F.AutoCrop = AutoCrop;
                     F.StartTranscode();
                 }
                 else
