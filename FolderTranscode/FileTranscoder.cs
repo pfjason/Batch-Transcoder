@@ -27,12 +27,11 @@ namespace FolderTranscode
         public bool AutoCrop = true;
 
         public FileTranscoder(string inFileName, string outFileName)
-        {
-            Console.WriteLine(inFileName + "=>" + outFileName);
+        {            
             InputFile = new FileInfo(inFileName);
             OutputFile = new FileInfo(outFileName);
             MediaFile F = new MediaFile(InputFile.FullName);
-            Metadata = GetMetaData(F);            
+            Metadata = GetMetaData(F);
             MediaInfoDotNet.Models.VideoStream VS = F.Video[0];
             Duration = new TimeSpan(VS.duration * TimeSpan.TicksPerMillisecond);
         }
@@ -108,7 +107,7 @@ namespace FolderTranscode
 
         public bool Transcode()
         {
-           
+
             bool exclusiveAccess = false;
             bool RetVal = false;
 
@@ -240,7 +239,7 @@ namespace FolderTranscode
                 throw new InvalidOperationException(OutputFile.FullName + " already exists");
             return RetVal;
         }
-               
+
         bool ProcessNonMediaFile()
         {
             bool RetVal = false;
@@ -380,7 +379,7 @@ namespace FolderTranscode
 
                     arg += "\"";
 
-                    string OF = OutputFile.Directory.FullName + "\\~rc." + InputFile.Name ;
+                    string OF = OutputFile.Directory.FullName + "\\~rc." + InputFile.Name;
 
                     arg += GetFFMPegMetaDataArgs();
                     arg += " -codec copy -bsf:1 aac_adtstoasc \"" + OF + "\"";
@@ -425,9 +424,9 @@ namespace FolderTranscode
                 ffcrop.StartInfo.UseShellExecute = false;
                 ffcrop.StartInfo.RedirectStandardError = true;
                 ffcrop.StartInfo.RedirectStandardOutput = false;
-                ffcrop.StartInfo.CreateNoWindow = true;               
+                ffcrop.StartInfo.CreateNoWindow = true;
                 ffcrop.Start();
-                string E = ffcrop.StandardError.ReadToEnd();                
+                string E = ffcrop.StandardError.ReadToEnd();
                 ffcrop.WaitForExit();
                 string Val = null;
                 StringReader R = new StringReader(E);
@@ -437,9 +436,9 @@ namespace FolderTranscode
                 {
                     if (line.Contains("crop=") && line.Contains("cropdetect"))
                     {
-                        Val = line.Substring(line.LastIndexOf("crop=")+5);
+                        Val = line.Substring(line.LastIndexOf("crop=") + 5);
                     }
-                }                
+                }
 
                 if (ffcrop.ExitCode == 0)
                     retVal = Val;
@@ -487,7 +486,7 @@ namespace FolderTranscode
                 decimal dd = (Convert.ToDecimal(F.Video[0].Duration) / 1000) - 10;
 
                 arg += GetFFMPegMetaDataArgs();
-                
+
                 arg += " -codec copy -ss 00:00:04 -to " + dd.ToString() + " \"" + OF + "\"";
 
                 Process ff = new Process();
@@ -550,7 +549,7 @@ namespace FolderTranscode
             System.Reflection.Assembly A = System.Reflection.Assembly.GetExecutingAssembly();
 
             retVal += " -metadata converter=\"" + A.GetName().Name + " " + A.GetName().Version.ToString() + "\"";
-            
+
 
             return retVal;
         }
@@ -559,74 +558,86 @@ namespace FolderTranscode
         {
             string retVal = null;
             string ffmpeg = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).Directory.FullName + "\\ffmpeg.exe";
-            
+
             if (File.Exists(ffmpeg))
             {
-                string arg = "-y -i \"" + F.filePath + "\" ";
+                string ac = "";
 
-                
-                arg += " -vf \"yadif=0:-1:0";
                 if (AutoCrop)
-                    arg += ", crop=" + GetAutoCropValues(F);
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write("Getting AutoCrop Settings: ");
+                    ac = GetAutoCropValues(F);
+                    Console.WriteLine(ac);
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
+
+                string arg = "-y -i \"" + F.filePath + "\" ";
+                arg += " -vf \"yadif=0:-1:0";
+
+                if (AutoCrop)
+                    arg += ", crop=" + ac;
+
                 arg += "\" -c:a copy  ";
 
+                string OF = OutputFile.Directory.FullName + "\\" + InputFile.Name.Replace(InputFile.Extension, ".mkv");
 
-                    string OF = OutputFile.Directory.FullName + "\\" + InputFile.Name.Replace(InputFile.Extension, ".mkv");
 #if !DEBUG
-                arg += " -c:v libx265 -preset ultrafast -crf 15 ";
+                arg += " -c:v libx265 -preset ultrafast -crf 10 ";
 #else
                 arg += " -c:v libx265 -preset ultrafast -crf 50 ";
 #endif
+
                 string arg1 = arg;
                 string arg2 = arg;
-
                 arg1 += " -pass 1 -f matroska NUL";
                 arg2 += GetFFMPegMetaDataArgs();
 
-                if(twoPass)
+                if (twoPass)
                     arg2 += " -pass 2 ";
-                
+
                 arg2 += " \"" + OF + "\"";
 
                 Process ff1 = new Process();
 
                 if (twoPass)
                 {
-                    Console.WriteLine("Starting first transcoder pass");                    
+                    Console.Write("Pass 1: ");
                     ff1.StartInfo.FileName = ffmpeg;
                     ff1.StartInfo.Arguments = arg1;
                     ff1.StartInfo.UseShellExecute = false;
                     ff1.StartInfo.RedirectStandardError = true;
-                    ff1.StartInfo.RedirectStandardOutput = true;
+                    ff1.StartInfo.RedirectStandardOutput = false;
                     ff1.ErrorDataReceived += Ff_ErrorDataReceived;
-                    ff1.OutputDataReceived += Ff_OutputDataReceived;
-                    Console.WriteLine(ff1.StartInfo.FileName + " " + ff1.StartInfo.Arguments);
+                   // ff1.OutputDataReceived += Ff_OutputDataReceived;
+                    //Console.WriteLine(ff1.StartInfo.FileName + " " + ff1.StartInfo.Arguments);
                     //Console.ReadKey();
                     ff1.Start();
                     ff1.BeginErrorReadLine();
-                    ff1.BeginOutputReadLine();
+                    //ff1.BeginOutputReadLine();
                     ff1.WaitForExit();
+                    Console.CursorLeft = 0;
                 }
 
                 if (twoPass)
-                    Console.WriteLine("Starting second transcoder pass");
+                    Console.Write("Pass 2: ");                
 
                 Process ff2 = new Process();
                 ff2.StartInfo.FileName = ffmpeg;
                 ff2.StartInfo.Arguments = arg2;
                 ff2.StartInfo.UseShellExecute = false;
                 ff2.StartInfo.RedirectStandardError = true;
-                ff2.StartInfo.RedirectStandardOutput = true;
+                ff2.StartInfo.RedirectStandardOutput = false;
                 ff2.ErrorDataReceived += Ff_ErrorDataReceived;
-                ff2.OutputDataReceived += Ff_OutputDataReceived;
-                Console.WriteLine(ff2.StartInfo.FileName + " " + ff2.StartInfo.Arguments);
-                Console.ReadKey();
+               // ff2.OutputDataReceived += Ff_OutputDataReceived;
+                //Console.WriteLine(ff2.StartInfo.FileName + " " + ff2.StartInfo.Arguments);
+                //Console.ReadKey();
                 ff2.Start();
                 ff2.BeginErrorReadLine();
-                ff2.BeginOutputReadLine();
+               // ff2.BeginOutputReadLine();
                 ff2.WaitForExit();
 
-                if ((twoPass && ff1.ExitCode == 0 && ff2.ExitCode == 0) 
+                if ((twoPass && ff1.ExitCode == 0 && ff2.ExitCode == 0)
                     || !twoPass && ff2.ExitCode == 0)
                     retVal = OF;
             }
@@ -640,14 +651,8 @@ namespace FolderTranscode
         {
             try
             {
-                Console.CursorLeft = 0;
-               /* int Top = Console.CursorTop;
-                Console.Write("O:" + e.Data.PadRight(Console.WindowWidth - 3));
-                if (e.Data.StartsWith("frame="))
-                    Console.CursorTop = Top;
-                else
-                    Console.WriteLine();
-                    */
+                // This needs to be here, (or something that doesn't get optimized out by the compiler) so output data is discarded without hanging ffmpeg.
+                Console.CursorLeft = Console.CursorLeft; 
             }
             catch { }
         }
@@ -656,17 +661,16 @@ namespace FolderTranscode
         {
             try
             {
-                Console.CursorLeft = 0;
+                int Left = Console.CursorLeft;
                 int Top = Console.CursorTop;
                 if (e.Data.StartsWith("frame="))
                 {
-                    Console.Write(e.Data.PadRight(Console.WindowWidth - 1));
+                    Console.Write(e.Data.PadRight(Console.WindowWidth - Left - 1));
                     Console.CursorTop = Top;
+                    Console.CursorLeft = Left;
                 }
-               // else
-                   // Console.WriteLine();
             }
             catch { }
-        }       
+        }
     }
 }
