@@ -25,6 +25,37 @@ namespace FolderTranscode
         public bool h265Transcode = true;
         public bool twoPass = true;
         public bool AutoCrop = true;
+        public H265Preset Preset = H265Preset.veryfast;
+
+        private int _CRF = 18;
+        public int CRF
+        {
+            get
+            {
+                return _CRF;
+            }
+            set
+            {
+                if (value >= 0 && value <= 51)
+                    _CRF = value;
+                else
+                    throw new ArgumentOutOfRangeException("value", "CRF must be between 0 and 51");
+            }
+        }
+        
+        public enum H265Preset
+        {
+            ultrafast
+                , superfast
+                , veryfast
+                , faster
+                , fast
+                , medium
+                , slow
+                , slower
+                , veryslow
+                , placebo
+        }
 
         public FileTranscoder(string inFileName, string outFileName)
         {            
@@ -211,7 +242,7 @@ namespace FolderTranscode
 
 
                             Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine("Transcoding " + F.filePath + " to h.265 format...");
+                            Console.WriteLine("Transcoding ("+Preset.ToString() + "/" + CRF.ToString()+") " + F.filePath + " to h.265 format...");
                             Console.ForegroundColor = ConsoleColor.Gray;
                             RetVal = (ffmpeg_h265_Transcode(F) != null);
 
@@ -579,15 +610,9 @@ namespace FolderTranscode
                     arg += ", crop=" + ac;
 
                 arg += "\" -c:a copy  ";
+                arg += " -c:v libx265 -preset "+Preset.ToString().ToLowerInvariant()+" -crf "+CRF.ToString()+" ";
 
-                string OF = OutputFile.Directory.FullName + "\\" + InputFile.Name.Replace(InputFile.Extension, ".mkv");
-
-#if !DEBUG
-                arg += " -c:v libx265 -preset ultrafast -crf 10 ";
-#else
-                arg += " -c:v libx265 -preset ultrafast -crf 50 ";
-#endif
-
+                string OF = OutputFile.Directory.FullName + "\\" + InputFile.Name.Replace(InputFile.Extension, ".mkv");                
                 string arg1 = arg;
                 string arg2 = arg;
                 arg1 += " -pass 1 -f matroska NUL";

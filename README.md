@@ -10,6 +10,8 @@ Usage:
 
 Batch Folder Transcoder.exe [Input Folder] [Output Folder] [Options]
 
+     -CRF [##]              CRF Transcode Quality (0-51)
+     -PRESET [PRESET]       x265 Transcode Preset (placebo - ultrafast)
      -DELETE                Deletes source file upon successful transcode.
      -NOTRANSCODE           Skips H.265 Transcode step in process
      -NOADREMOVAL           Skips PlayOn Detected Ad Removal

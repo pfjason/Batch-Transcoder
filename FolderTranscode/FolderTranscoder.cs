@@ -15,6 +15,22 @@ namespace FolderTranscode
     {
         DirectoryInfo InFolder, OutFolder;
         public bool DeleteOriginal = false, RemovePlayOnBanner = false, RemoveAds = false, h265Transcode = true, AutoCrop = true, TwoPass=true;
+        public FileTranscoder.H265Preset Preset = FileTranscoder.H265Preset.veryfast;
+        private int _CRF = 18;
+        public int CRF
+        {
+            get
+            {
+                return _CRF;
+            }
+            set
+            {
+                if (value >= 0 && value <= 51)
+                    _CRF = value;
+                else
+                    throw new ArgumentOutOfRangeException("value", "CRF must be between 0 and 51");
+            }
+        }
 
         public FolderTranscoder(string inFolder, string outFolder)
         {
@@ -48,6 +64,8 @@ namespace FolderTranscode
                         FT.RemovePlayOnBanner = RemovePlayOnBanner;
                         FT.h265Transcode = h265Transcode;
                         FT.AutoCrop = AutoCrop;
+                        FT.Preset = Preset;
+                        FT.CRF = CRF;
                         FT.Transcode();
                     }
                     catch (Exception ex)
