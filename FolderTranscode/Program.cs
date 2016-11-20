@@ -23,6 +23,7 @@ namespace FolderTranscode
                     bool Transcode = true;
                     bool Delete = false;
                     bool AutoCrop = true;
+                    bool TwoPass = true;
 
                     if (args.Length > 2)
                     {
@@ -46,6 +47,9 @@ namespace FolderTranscode
                                 case "-NOAUTOCROP":
                                     AutoCrop = false;
                                     break;
+                                case "-1-PASS":
+                                    TwoPass = false;
+                                    break;
                             }
                             arg++;
                         }
@@ -57,6 +61,7 @@ namespace FolderTranscode
                     F.RemovePlayOnBanner = RemoveBanner;
                     F.h265Transcode = Transcode;
                     F.AutoCrop = AutoCrop;
+                    F.TwoPass = TwoPass;
                     F.StartTranscode();
                 }
                 else
