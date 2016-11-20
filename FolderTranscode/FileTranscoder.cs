@@ -214,7 +214,6 @@ namespace FolderTranscode
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.WriteLine("Transcoding " + F.filePath + " to h.265 format...");
                             Console.ForegroundColor = ConsoleColor.Gray;
-                            //RetVal = HandbrakeTranscode(F);
                             RetVal = (ffmpeg_h265_Transcode(F) != null);
 
                             if (tempAdremove != null && File.Exists(tempAdremove))
@@ -241,126 +240,7 @@ namespace FolderTranscode
                 throw new InvalidOperationException(OutputFile.FullName + " already exists");
             return RetVal;
         }
-
-        bool HandbrakeTranscode(MediaFile F)
-        {
-            bool RetVal = false;
-
-            string HandbrakePath = @"C:\Program Files\Handbrake\HandbrakeCLI.exe";
-
-            if (File.Exists(HandbrakePath))
-            {
-                MediaInfoDotNet.Models.VideoStream VS = F.Video[0];
-                Process Handbrake = new Process();
-                Handbrake.StartInfo.UseShellExecute = false;
-                Handbrake.StartInfo.RedirectStandardError = true;
-                Handbrake.StartInfo.RedirectStandardOutput = true;
-                Handbrake.OutputDataReceived += Handbrake_OutputDataReceived;
-                Handbrake.ErrorDataReceived += Handbrake_ErrorDataReceived;
-                Handbrake.StartInfo.FileName = HandbrakePath;
-                Handbrake.StartInfo.Arguments = @"-e x265 --encoder-preset veryfast -q 18 --two-pass --decomb ";
-#if DEBUG
-                Handbrake.StartInfo.Arguments = @"-e x265 --encoder-preset ultrafast -q 45 ";
-#endif
-
-                Handbrake.StartInfo.Arguments += "-P -U -N eng"
-                                                  + " --maxWidth " + VS.width.ToString() + " --maxHeight " + VS.height.ToString() + " -m "
-                                                 + " --strict-anamorphic --audio-copy-mask aac,ac3,dts,dtshd  ";
-                string AudioChannels = "";
-                Console.WriteLine(new String('-', Console.WindowWidth));
-                Console.WriteLine("Transcoding " + F.filePath);
-                Console.WriteLine("Stream " + VS.streamid.ToString() + ": " + VS.ToString());
-                Console.WriteLine("Codec: " + VS.CodecId.ToString() + " " + VS.codecCommonName);
-                Console.WriteLine("Resolution: " + VS.width.ToString() + "x" + VS.height.ToString());
-                Console.WriteLine("Length: " + Duration.ToString());
-
-                int ChannelCount = 0;
-
-                foreach (MediaInfoDotNet.Models.AudioStream A in F.Audio)
-                {
-                    if (ChannelCount == 0)
-                        Handbrake.StartInfo.Arguments += "-E ";
-                    else
-                        Handbrake.StartInfo.Arguments += ",";
-
-                    ChannelCount++;
-                    Handbrake.StartInfo.Arguments += "copy";
-                    Console.WriteLine("Audio Stream " + A.streamid + ": " + A.ToString());
-                    Console.WriteLine("Audio Codec: " + A.CodecId + " / " + A.CodecCommonName + " / " + A.codecCommonName + " / " + A.EncodedLibrary + " / " + A.encoderLibrary);
-
-                    Console.WriteLine("Channels: " + A.Channels);
-                    AudioChannels = A.Channels;
-
-                }
-                Handbrake.StartInfo.Arguments += " ";
-
-
-                foreach (MediaInfoDotNet.Models.TextStream T in F.Text)
-                {
-                    Console.WriteLine("Subtitle " + T.streamid + ": " + T.ToString());
-                }
-
-                int subtitles = 0;
-                if (F.Text.Count > 0)
-                    Handbrake.StartInfo.Arguments += "-s ";
-
-                while (subtitles < F.Text.Count)
-                {
-                    if (subtitles != 0)
-                        Handbrake.StartInfo.Arguments += ",";
-
-                    Handbrake.StartInfo.Arguments += (subtitles + 1).ToString();
-                    subtitles++;
-                }
-
-                if (F.Text.Count > 0)
-                    Handbrake.StartInfo.Arguments += ",scan ";
-
-                Handbrake.StartInfo.Arguments += "-i \"" + F.filePath + "\" ";
-                Handbrake.StartInfo.Arguments += "-o \"" + OutputFile.FullName + "\" ";
-
-                //Console.WriteLine(Handbrake.StartInfo.FileName + " " + Handbrake.StartInfo.Arguments);
-
-                if (!OutputFile.Directory.Exists)
-                    OutputFile.Directory.Create();
-
-                Handbrake.Start();
-                Handbrake.PriorityClass = ProcessPriorityClass.BelowNormal;
-                Console.CursorVisible = false;
-                Handbrake.BeginOutputReadLine();
-                Handbrake.BeginErrorReadLine();
-                Handbrake.WaitForExit();
-                Console.CursorVisible = true;
-                Console.WriteLine();
-                Console.WriteLine("HandbrakeCLI exited with code " + Handbrake.ExitCode.ToString());
-
-                if (Handbrake.ExitCode == 0)
-                    RetVal = true;
-
-                if (DeleteOriginal && Handbrake.ExitCode == 0)
-                {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("Deleting " + InputFile.Name);
-                    InputFile.Delete();
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                }
-
-                if (Handbrake.ExitCode != 0)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Handbrake exited with code " + Handbrake.ExitCode.ToString() + " deleting partial output file " + OutputFile.Name);
-                    OutputFile.Delete();
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                }
-
-
-            }
-            else
-                throw new FileNotFoundException("Unable to find HandbrakeCLI.", HandbrakePath);
-
-            return RetVal;
-        }
-
+               
         bool ProcessNonMediaFile()
         {
             bool RetVal = false;
@@ -787,23 +667,6 @@ namespace FolderTranscode
                    // Console.WriteLine();
             }
             catch { }
-        }
-
-        private void Handbrake_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            Console.CursorLeft = 0;
-        }
-
-        private void Handbrake_OutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            try
-            {
-                Console.CursorLeft = 0;
-                int Top = Console.CursorTop;
-                Console.Write(e.Data.PadRight(Console.WindowWidth - 1));
-                Console.CursorTop = Top;
-            }
-            catch { }
-        }
+        }       
     }
 }
