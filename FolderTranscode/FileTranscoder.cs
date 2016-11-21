@@ -42,7 +42,7 @@ namespace FolderTranscode
                     throw new ArgumentOutOfRangeException("value", "CRF must be between 0 and 51");
             }
         }
-        
+
         public enum H265Preset
         {
             ultrafast
@@ -58,7 +58,7 @@ namespace FolderTranscode
         }
 
         public FileTranscoder(string inFileName, string outFileName)
-        {            
+        {
             InputFile = new FileInfo(inFileName);
             OutputFile = new FileInfo(outFileName);
             MediaFile F = new MediaFile(InputFile.FullName);
@@ -169,6 +169,10 @@ namespace FolderTranscode
                         string tempBannerRemove = null;
                         string tempAdremove = null;
 
+                        Console.CursorLeft = 0;
+                        Console.Write("".PadRight(Console.WindowWidth - 1));
+                        Console.CursorLeft = 0;
+
                         if (isPlayOnFile())
                         {
                             Console.ForegroundColor = ConsoleColor.Blue;
@@ -242,7 +246,7 @@ namespace FolderTranscode
 
 
                             Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine("Transcoding ("+Preset.ToString() + "/" + CRF.ToString()+") " + F.filePath + " to h.265 format...");
+                            Console.WriteLine("Transcoding (" + Preset.ToString() + "/" + CRF.ToString() + ") " + F.filePath + " to h.265 format...");
                             Console.ForegroundColor = ConsoleColor.Gray;
                             RetVal = (ffmpeg_h265_Transcode(F) != null);
 
@@ -609,10 +613,14 @@ namespace FolderTranscode
                 if (AutoCrop)
                     arg += ", crop=" + ac;
 
-                arg += "\" -c:a copy  ";
-                arg += " -c:v libx265 -preset "+Preset.ToString().ToLowerInvariant()+" -crf "+CRF.ToString()+" ";
+                arg += "\" -c:a copy -c:s copy -map 0 ";
 
-                string OF = OutputFile.Directory.FullName + "\\" + InputFile.Name.Replace(InputFile.Extension, ".mkv");                
+
+
+                arg += " -c:v libx265 -preset " + Preset.ToString().ToLowerInvariant() + " -crf " + CRF.ToString() + " ";
+
+
+                string OF = OutputFile.Directory.FullName + "\\" + InputFile.Name.Replace(InputFile.Extension, ".mkv");
                 string arg1 = arg;
                 string arg2 = arg;
                 arg1 += " -pass 1 -f matroska NUL";
@@ -634,7 +642,7 @@ namespace FolderTranscode
                     ff1.StartInfo.RedirectStandardError = true;
                     ff1.StartInfo.RedirectStandardOutput = false;
                     ff1.ErrorDataReceived += Ff_ErrorDataReceived;
-                   // ff1.OutputDataReceived += Ff_OutputDataReceived;
+                    // ff1.OutputDataReceived += Ff_OutputDataReceived;
                     //Console.WriteLine(ff1.StartInfo.FileName + " " + ff1.StartInfo.Arguments);
                     //Console.ReadKey();
                     ff1.Start();
@@ -642,10 +650,15 @@ namespace FolderTranscode
                     //ff1.BeginOutputReadLine();
                     ff1.WaitForExit();
                     Console.CursorLeft = 0;
+                    if(ff1.ExitCode != 0)
+                    {
+                        Console.WriteLine("Transcode failed for " + F.filePath);
+                        return null;
+                    }
                 }
 
                 if (twoPass)
-                    Console.Write("Pass 2: ");                
+                    Console.Write("Pass 2: ");
 
                 Process ff2 = new Process();
                 ff2.StartInfo.FileName = ffmpeg;
@@ -654,12 +667,12 @@ namespace FolderTranscode
                 ff2.StartInfo.RedirectStandardError = true;
                 ff2.StartInfo.RedirectStandardOutput = false;
                 ff2.ErrorDataReceived += Ff_ErrorDataReceived;
-               // ff2.OutputDataReceived += Ff_OutputDataReceived;
-                //Console.WriteLine(ff2.StartInfo.FileName + " " + ff2.StartInfo.Arguments);
-                //Console.ReadKey();
+                // ff2.OutputDataReceived += Ff_OutputDataReceived;
+                // Console.WriteLine(ff2.StartInfo.FileName + " " + ff2.StartInfo.Arguments);
+                // Console.ReadKey();
                 ff2.Start();
                 ff2.BeginErrorReadLine();
-               // ff2.BeginOutputReadLine();
+                // ff2.BeginOutputReadLine();
                 ff2.WaitForExit();
 
                 if ((twoPass && ff1.ExitCode == 0 && ff2.ExitCode == 0)
@@ -677,7 +690,7 @@ namespace FolderTranscode
             try
             {
                 // This needs to be here, (or something that doesn't get optimized out by the compiler) so output data is discarded without hanging ffmpeg.
-                Console.CursorLeft = Console.CursorLeft; 
+                Console.CursorLeft = Console.CursorLeft;
             }
             catch { }
         }

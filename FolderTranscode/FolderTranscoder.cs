@@ -66,6 +66,7 @@ namespace FolderTranscode
                         FT.AutoCrop = AutoCrop;
                         FT.Preset = Preset;
                         FT.CRF = CRF;
+                        FT.twoPass = TwoPass;
                         FT.Transcode();
                     }
                     catch (Exception ex)
