@@ -256,6 +256,15 @@ namespace FolderTranscode
                             if (tempBannerRemove != null && File.Exists(tempBannerRemove))
                                 File.Delete(tempBannerRemove);
 
+                            if(DeleteOriginal && File.Exists(OutputFile.FullName) && RetVal)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Deleting " + InputFile.FullName);
+                                InputFile.Delete();
+                                Console.ForegroundColor = ConsoleColor.Gray;
+                            }
+
+
                         }
                         else
                         {
