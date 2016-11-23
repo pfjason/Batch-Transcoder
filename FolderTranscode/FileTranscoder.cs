@@ -243,8 +243,6 @@ namespace FolderTranscode
 
                         if (h265Transcode)
                         {
-
-
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.WriteLine("Transcoding (" + Preset.ToString() + "/" + CRF.ToString() + ") " + F.filePath + " to h.265 format...");
                             Console.ForegroundColor = ConsoleColor.Gray;
@@ -256,12 +254,21 @@ namespace FolderTranscode
                             if (tempBannerRemove != null && File.Exists(tempBannerRemove))
                                 File.Delete(tempBannerRemove);
 
-                            if(DeleteOriginal && File.Exists(OutputFile.FullName) && RetVal)
+                            if (RetVal)
                             {
-                                Console.ForegroundColor = ConsoleColor.Red;
-                                Console.WriteLine("Deleting " + InputFile.FullName);
-                                InputFile.Delete();
+                                Console.CursorLeft = 0;
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.WriteLine(("Transcode Complete for " + InputFile.Name + ".").PadRight(Console.WindowWidth - 1));
                                 Console.ForegroundColor = ConsoleColor.Gray;
+
+                                if (DeleteOriginal && File.Exists(OutputFile.FullName))
+                                {
+                                    Console.ForegroundColor = ConsoleColor.Yellow;
+                                    Console.CursorLeft = 0;
+                                    Console.WriteLine(("Deleting " + InputFile.FullName).PadRight(Console.WindowWidth - 1));
+                                    InputFile.Delete();
+                                    Console.ForegroundColor = ConsoleColor.Gray;
+                                }
                             }
 
 
@@ -609,10 +616,12 @@ namespace FolderTranscode
 
                 if (AutoCrop)
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write("Getting AutoCrop Settings: ");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write("Scanning video for AutoCrop Settings...");
                     ac = GetAutoCropValues(F);
-                    Console.WriteLine(ac);
+                    Console.CursorLeft = 0;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine(("AutoCrop Settings: " + ac).PadRight(Console.WindowWidth - 1));
                     Console.ForegroundColor = ConsoleColor.Gray;
                 }
 
