@@ -55,9 +55,9 @@ namespace FolderTranscode
                                 case "-PRESET":
                                     try
                                     {
-                                       Preset =  (FileTranscoder.H265Preset)Enum.Parse(typeof(FileTranscoder.H265Preset), args[arg + 1].ToLowerInvariant()) ;                                            
+                                        Preset = (FileTranscoder.H265Preset)Enum.Parse(typeof(FileTranscoder.H265Preset), args[arg + 1].ToLowerInvariant());
                                     }
-                                    catch(Exception)
+                                    catch (Exception)
                                     {
                                         Console.WriteLine("Invalid Transcoder Preset, using default VeryFast");
                                         Preset = FileTranscoder.H265Preset.veryfast;
@@ -68,7 +68,7 @@ namespace FolderTranscode
                                     try
                                     {
                                         string c = args[arg + 1];
-                                        if(Int32.TryParse(c, out CRF) && CRF >= 0 && CRF <= 51 )
+                                        if (Int32.TryParse(c, out CRF) && CRF >= 0 && CRF <= 51)
                                         {
                                             Console.WriteLine("Setting CRF to " + CRF.ToString());
                                         }
@@ -78,7 +78,7 @@ namespace FolderTranscode
                                             CRF = 18;
                                         }
                                     }
-                                    catch(Exception)
+                                    catch (Exception)
                                     {
                                         Console.WriteLine("Invalid CRF, using Default");
                                         CRF = 18;
@@ -102,8 +102,7 @@ namespace FolderTranscode
                 }
                 else
                 {
-                    Console.WriteLine("Usage: ");
-                    Console.WriteLine(System.AppDomain.CurrentDomain.FriendlyName + " [input directory] [output directory]");
+                    ShowHelp();
                 }
             }
             catch (Exception ex)
@@ -112,8 +111,24 @@ namespace FolderTranscode
             }
         }
 
-    }
 
-    
-   
+       static void ShowHelp()
+        {
+            string HelpText = @"Usage:
+
+BatchTranscoder.exe [Input Folder] [Output Folder] [Options]
+
+     -1-PASS                Disables 2-Pass Transcode
+     -CRF [##]              CRF Transcode Quality (0-51) Default: 18
+     -DELETE                Deletes source file upon successful transcode.
+     -PRESET [PRESET]       x265 Transcode Preset (placebo - ultrafast) Default: veryfast
+     -NOAUTOCROP            Disables AutoCropping
+     -NOADREMOVAL           Skips PlayOn Detected Ad Removal
+     -NOBANNERREMOVAL       Skips PlayOn Banner Removal
+     -NOTRANSCODE           Skips H.265 Transcode step in process";
+
+            Console.WriteLine(HelpText);
+        }
+
+    }
 }
