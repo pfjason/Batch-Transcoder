@@ -468,7 +468,9 @@ namespace FolderTranscode
 
             if (File.Exists(ffmpeg))
             {
-                string arg = "-i \"" + F.filePath + "\" -ss 00:02:00  -vframes 100 -vf cropdetect=65:16:0 -f null NUL";
+                //Initialize starting point of AutoCrop scan as half duration in ticks (hopefully the exact middle of the video)
+                TimeSpan SS = new TimeSpan(((F.Video[0].duration) / 2) * (TimeSpan.TicksPerSecond/1000));
+                string arg = " -ss " + SS.TotalSeconds.ToString() + " -i \"" + F.filePath + "\" -frames 3000 -vf cropdetect=65:16:0 -f null NUL";                
                 Process ffcrop = new Process();
                 ffcrop.StartInfo.FileName = ffmpeg;
                 ffcrop.StartInfo.Arguments = arg;
@@ -632,11 +634,7 @@ namespace FolderTranscode
                     arg += ", crop=" + ac;
 
                 arg += "\" -c:a copy -c:s copy -map 0 ";
-
-
-
                 arg += " -c:v libx265 -preset " + Preset.ToString().ToLowerInvariant() + " -crf " + CRF.ToString() + " ";
-
 
                 string OF = OutputFile.Directory.FullName + "\\" + InputFile.Name.Replace(InputFile.Extension, ".mkv");
                 string arg1 = arg;
@@ -670,7 +668,7 @@ namespace FolderTranscode
                     Console.CursorLeft = 0;
                     if(ff1.ExitCode != 0)
                     {
-                        Console.WriteLine("Transcode failed for " + F.filePath);
+                        Console.WriteLine("Transcode failed for " + F.filePath + " using ffmpeg.exe " + ff1.StartInfo.Arguments);                       
                         return null;
                     }
                 }
@@ -696,6 +694,10 @@ namespace FolderTranscode
                 if ((twoPass && ff1.ExitCode == 0 && ff2.ExitCode == 0)
                     || !twoPass && ff2.ExitCode == 0)
                     retVal = OF;
+                else
+                {
+                    Console.WriteLine("Transcode failed for " + F.filePath + " using ffmpeg.exe " + ff2.StartInfo.Arguments);
+                }
             }
             else throw new FileNotFoundException("FFMPEG was not found", ffmpeg);
 
