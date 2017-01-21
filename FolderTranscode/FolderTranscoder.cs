@@ -14,7 +14,7 @@ namespace FolderTranscode
     class FolderTranscoder
     {
         DirectoryInfo InFolder, OutFolder;
-        public bool DeleteOriginal = false, RemovePlayOnBanner = false, RemoveAds = false, h265Transcode = true, AutoCrop = true, TwoPass=true;
+        public bool DeleteOriginal = false, RemovePlayOnBanner = false, RemoveAds = false, h265Transcode = true, AutoCrop = true, TwoPass = true, NoCopyUnaltered = false;
         public FileTranscoder.H265Preset Preset = FileTranscoder.H265Preset.veryfast;
         private int _CRF = 18;
         public int CRF
@@ -57,10 +57,16 @@ namespace FolderTranscode
                 {
                     try
                     {
-                        FileInfo OutFile = new FileInfo(F.FullName.Replace(InFolder.FullName, OutFolder.FullName).Replace(F.Extension, ".mkv"));
+                        string OutFileName = F.FullName.Replace(InFolder.FullName, OutFolder.FullName);
+
+                        if (h265Transcode)
+                            OutFileName = OutFileName.Replace(F.Extension, ".mkv");
+
+                        FileInfo OutFile = new FileInfo(OutFileName);
                         FileTranscoder FT = new FileTranscoder(F.FullName, OutFile.FullName);
                         FT.DeleteOriginal = DeleteOriginal;
                         FT.RemoveAds = RemoveAds;
+                        FT.NoCopyUnalteredFiles = this.NoCopyUnaltered;
                         FT.RemovePlayOnBanner = RemovePlayOnBanner;
                         FT.h265Transcode = h265Transcode;
                         FT.AutoCrop = AutoCrop;

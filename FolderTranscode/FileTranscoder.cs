@@ -25,6 +25,7 @@ namespace FolderTranscode
         public bool h265Transcode = true;
         public bool twoPass = true;
         public bool AutoCrop = true;
+        public bool NoCopyUnalteredFiles = false;
         public H265Preset Preset = H265Preset.veryfast;
 
         private int _CRF = 18;
@@ -61,10 +62,15 @@ namespace FolderTranscode
         {
             InputFile = new FileInfo(inFileName);
             OutputFile = new FileInfo(outFileName);
-            MediaFile F = new MediaFile(InputFile.FullName);
-            Metadata = GetMetaData(F);
-            MediaInfoDotNet.Models.VideoStream VS = F.Video[0];
-            Duration = new TimeSpan(VS.duration * TimeSpan.TicksPerMillisecond);
+            MediaFile F = new MediaFile(InputFile.FullName);            
+            MediaInfoDotNet.Models.VideoStream VS = null;
+
+            if (F.HasStreams && F.Video.Count > 0)
+            {                
+                VS = F.Video[0];
+                Metadata = GetMetaData(F);
+                Duration = new TimeSpan(VS.duration * TimeSpan.TicksPerMillisecond);
+            }
         }
 
         public bool isPlayOnFile()
@@ -125,7 +131,7 @@ namespace FolderTranscode
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.ToString());
+                            Console.WriteLine(ex.Message);
                         }
 
                     }
@@ -153,13 +159,11 @@ namespace FolderTranscode
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Couldn't get exclusive access to " + InputFile.Name + ", Skipping");
                 Console.ForegroundColor = ConsoleColor.Gray;
-            }
-
-            if (!OutputFile.Directory.Exists)
-                OutputFile.Directory.Create();
+            }           
 
             if (!OutputFile.Exists && exclusiveAccess)
             {
+
                 MediaFile F = new MediaFile(InputFile.FullName);
 
                 if (F.HasStreams)
@@ -287,33 +291,44 @@ namespace FolderTranscode
 
             }
             else
-                throw new InvalidOperationException(OutputFile.FullName + " already exists");
+                throw new InvalidOperationException(OutputFile.FullName + " already exists or could not get exclusive access to original");
             return RetVal;
         }
 
         bool ProcessNonMediaFile()
         {
-            bool RetVal = false;
-
-            Console.Write(InputFile.FullName + " is not a media file. ");
-
-            if (!OutputFile.Exists)
+            if (!NoCopyUnalteredFiles)
             {
-                if (!DeleteOriginal)
-                {
-                    Console.WriteLine("Copying...");
-                    InputFile.CopyTo(OutputFile.FullName);
-                    RetVal = true;
-                }
-                else
-                {
-                    Console.WriteLine("Moving...");
-                    InputFile.MoveTo(OutputFile.FullName);
-                    RetVal = true;
-                }
-            }
+                if (!OutputFile.Directory.Exists)
+                    OutputFile.Directory.Create();
 
-            return RetVal;
+                bool RetVal = false;
+
+                Console.Write(InputFile.FullName + " is not a media file. ");
+
+                if (!OutputFile.Exists)
+                {
+                    if (!DeleteOriginal)
+                    {
+                        Console.WriteLine("Copying...");
+                        InputFile.CopyTo(OutputFile.FullName);
+                        RetVal = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Moving...");
+                        InputFile.MoveTo(OutputFile.FullName);
+                        RetVal = true;
+                    }
+                }
+
+                return RetVal;
+            }
+            else
+            {
+                Console.WriteLine("Skipping non-media file " + InputFile.FullName);
+                return true;
+            }
         }
 
         string RemoveCommercials(MediaFile F)
@@ -325,6 +340,9 @@ namespace FolderTranscode
             {
                 if (hasAds())
                 {
+                    if (!OutputFile.Directory.Exists)
+                        OutputFile.Directory.Create();
+
                     Collection<Chapter> Chapters = new Collection<Chapter>();
 
                     foreach (MediaInfoDotNet.Models.MenuStream m in F.Menu)
@@ -470,7 +488,7 @@ namespace FolderTranscode
             {
                 //Initialize starting point of AutoCrop scan as half duration in ticks (hopefully the exact middle of the video)
                 TimeSpan SS = new TimeSpan(((F.Video[0].duration) / 2) * (TimeSpan.TicksPerSecond/1000));
-                string arg = " -ss " + SS.TotalSeconds.ToString() + " -i \"" + F.filePath + "\" -frames 3000 -vf cropdetect=65:16:0 -f null NUL";                
+                string arg = " -ss " + SS.TotalSeconds.ToString() + " -i \"" + F.filePath + "\" -frames 10000 -vf cropdetect=40:16:0 -f null NUL";                
                 Process ffcrop = new Process();
                 ffcrop.StartInfo.FileName = ffmpeg;
                 ffcrop.StartInfo.Arguments = arg;
@@ -533,6 +551,9 @@ namespace FolderTranscode
 
             if (File.Exists(ffmpeg))
             {
+                if (!OutputFile.Directory.Exists)
+                    OutputFile.Directory.Create();
+
                 string arg = "-y -i \"" + F.filePath + "\" ";
 
                 string OF = OutputFile.Directory.FullName + "\\~br." + InputFile.Name;
@@ -675,6 +696,9 @@ namespace FolderTranscode
 
                 if (twoPass)
                     Console.Write("Pass 2: ");
+
+                if (!OutputFile.Directory.Exists)
+                    OutputFile.Directory.Create();
 
                 Process ff2 = new Process();
                 ff2.StartInfo.FileName = ffmpeg;

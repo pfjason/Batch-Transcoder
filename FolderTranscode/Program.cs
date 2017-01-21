@@ -24,6 +24,7 @@ namespace FolderTranscode
                     bool Delete = false;
                     bool AutoCrop = true;
                     bool TwoPass = true;
+                    bool NoCopy = false;
                     int CRF = 18;
                     FileTranscoder.H265Preset Preset = FileTranscoder.H265Preset.veryfast;
 
@@ -48,6 +49,9 @@ namespace FolderTranscode
                                     break;
                                 case "-NOAUTOCROP":
                                     AutoCrop = false;
+                                    break;
+                                case "-NOCOPY":
+                                    NoCopy = true;
                                     break;
                                 case "-1-PASS":
                                     TwoPass = false;
@@ -91,6 +95,7 @@ namespace FolderTranscode
 
                     FolderTranscoder F = new FolderTranscoder(args[0], args[1]);
                     F.DeleteOriginal = Delete;
+                    F.NoCopyUnaltered = NoCopy;
                     F.RemoveAds = RemoveAds;
                     F.RemovePlayOnBanner = RemoveBanner;
                     F.h265Transcode = Transcode;
@@ -125,6 +130,7 @@ BatchTranscoder.exe [Input Folder] [Output Folder] [Options]
      -NOAUTOCROP            Disables AutoCropping
      -NOADREMOVAL           Skips PlayOn Detected Ad Removal
      -NOBANNERREMOVAL       Skips PlayOn Banner Removal
+     -NOCOPY                Skips copy/move of non-processed files to destination directory.
      -NOTRANSCODE           Skips H.265 Transcode step in process";
 
             Console.WriteLine(HelpText);
