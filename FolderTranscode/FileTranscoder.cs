@@ -157,7 +157,7 @@ namespace FolderTranscode
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Couldn't get exclusive access to " + InputFile.Name + ", Skipping");
+                Console.WriteLine("Couldn't get exclusive access to " + InputFile.Name + ", Skipping: " + ex.Message);
                 Console.ForegroundColor = ConsoleColor.Gray;
             }           
 
@@ -487,8 +487,8 @@ namespace FolderTranscode
             if (File.Exists(ffmpeg))
             {
                 //Initialize starting point of AutoCrop scan as half duration in ticks (hopefully the exact middle of the video)
-                TimeSpan SS = new TimeSpan(((F.Video[0].duration) / 2) * (TimeSpan.TicksPerSecond/1000));
-                string arg = " -ss " + SS.TotalSeconds.ToString() + " -i \"" + F.filePath + "\" -frames 10000 -vf cropdetect=40:16:0 -f null NUL";                
+                TimeSpan SS = new TimeSpan(((F.Video[0].duration) / 2) * (TimeSpan.TicksPerSecond / 1000));
+                string arg = " -ss " + SS.TotalSeconds.ToString() + " -i \"" + F.filePath + "\" -frames 10000 -vf cropdetect=40:16:0 -f null NUL";
                 Process ffcrop = new Process();
                 ffcrop.StartInfo.FileName = ffmpeg;
                 ffcrop.StartInfo.Arguments = arg;
@@ -515,6 +515,12 @@ namespace FolderTranscode
                     retVal = Val;
             }
             else throw new FileNotFoundException("FFMPEG was not found", ffmpeg);
+
+            foreach (string s in retVal.Split(":".ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
+            {              
+                if (Convert.ToInt32(s) < 0)
+                    throw new InvalidDataException("Negative values found in AutoCrop Settings.");
+            }   
 
             return retVal;
 
@@ -639,13 +645,23 @@ namespace FolderTranscode
 
                 if (AutoCrop)
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write("Scanning video for AutoCrop Settings...");
-                    ac = GetAutoCropValues(F);
-                    Console.CursorLeft = 0;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine(("AutoCrop Settings: " + ac).PadRight(Console.WindowWidth - 1));
-                    Console.ForegroundColor = ConsoleColor.Gray;
+                    try
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write("Scanning video for AutoCrop Settings...");
+                        ac = GetAutoCropValues(F);
+                        Console.CursorLeft = 0;
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine(("AutoCrop Settings: " + ac).PadRight(Console.WindowWidth - 1));
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine(("AutoCrop Error: " + ex.Message).PadRight(Console.WindowWidth - 1));
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        AutoCrop = false;
+                    }
                 }
 
                 string arg = "-y -i \"" + F.filePath + "\" ";
